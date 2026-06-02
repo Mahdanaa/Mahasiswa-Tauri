@@ -1,6 +1,7 @@
 import type { Mahasiswa } from './models/Mahasiswa';
 import { Database } from './db/Database';
 import { MahasiswaRepository } from './db/MahasiswaRepository';
+
 function requireElement<T extends HTMLElement>(id: string, elementType: { new (): T }): T {
   const element = document.getElementById(id);
   if (!(element instanceof elementType)) {
@@ -8,6 +9,7 @@ function requireElement<T extends HTMLElement>(id: string, elementType: { new ()
   }
   return element;
 }
+
 const form = requireElement('form-mahasiswa', HTMLFormElement);
 const tbody = requireElement('table-body', HTMLTableSectionElement);
 const editId = requireElement('edit-id', HTMLInputElement);
@@ -16,12 +18,15 @@ const inputNama = requireElement('nama', HTMLInputElement);
 const inputJurusan = requireElement('jurusan', HTMLInputElement);
 const inputAngkatan = requireElement('angkatan', HTMLInputElement);
 const inputIpk = requireElement('ipk', HTMLInputElement);
+
 let repo: MahasiswaRepository;
+
 async function initApp(): Promise<void> {
   const db = await Database.getInstance();
   repo = new MahasiswaRepository(db);
   await loadTable();
 }
+
 function fillFormFromButton(button: HTMLButtonElement): void {
   editId.value = button.dataset.id ?? '';
   inputNim.value = button.dataset.nim ?? '';
@@ -30,6 +35,7 @@ function fillFormFromButton(button: HTMLButtonElement): void {
   inputJurusan.value = button.dataset.jurusan ?? '';
   inputAngkatan.value = button.dataset.angkatan ?? '';
 }
+
 async function handleDelete(button: HTMLButtonElement): Promise<void> {
   const id = Number(button.dataset.id);
   if (Number.isNaN(id)) {
@@ -50,6 +56,7 @@ async function handleDelete(button: HTMLButtonElement): Promise<void> {
     alert('Terjadi error saat menghapus data. Cek console.');
   }
 }
+
 async function loadTable(searchNim: string = ''): Promise<void> {
   let data: Mahasiswa[] = [];
 
@@ -66,30 +73,21 @@ async function loadTable(searchNim: string = ''): Promise<void> {
     .map(
       (m: Mahasiswa) => `
 <tr>
-<td>${m.nim}</td><td>${m.nama}</td><td>${m.ipk}</td><td>${m.jurusan}</td><td>${m.angkatan}</td>
-<td>
-<button type="button" class="btn-edit"
-data-id="${m.id}" data-nim="${m.nim}" data-nama="${m.nama}" data-ipk="${m.ipk}"
-data-jurusan="${m.jurusan}" data-angkatan="${m.angkatan}">Edit</button>
-<button type="button" class="btn-delete" data-id="${m.id}">Hapus</button>
-</td>
+  <td>${m.nim}</td><td>${m.nama}</td><td>${m.ipk}</td><td>${m.jurusan}</td><td>${m.angkatan}</td>
+  <td>
+    <button type="button" class="btn-edit"
+      data-id="${m.id}" data-nim="${m.nim}" data-nama="${m.nama}" data-ipk="${m.ipk}"
+      data-jurusan="${m.jurusan}" data-angkatan="${m.angkatan}">Edit</button>
+    <button type="button" class="btn-delete" data-id="${m.id}">Hapus</button>
+  </td>
 </tr>
 `
     )
     .join('');
-  const editButtons = tbody.querySelectorAll<HTMLButtonElement>('.btn-edit');
-  for (const button of editButtons) {
-    button.addEventListener('click', () => {
-      fillFormFromButton(button);
-    });
-  }
-  const deleteButtons = tbody.querySelectorAll<HTMLButtonElement>('.btn-delete');
-  for (const button of deleteButtons) {
-    button.addEventListener('click', async () => {
-      await handleDelete(button);
-    });
-  }
+
+  // 🧹 KODE LISTENER LAMA DI SINI SUDAH KITA SAPU BERSIH!
 }
+
 form.addEventListener('submit', async (e: SubmitEvent) => {
   e.preventDefault();
 
@@ -110,6 +108,20 @@ form.addEventListener('submit', async (e: SubmitEvent) => {
     return;
   }
 
+  const currentId = editId.value ? Number(editId.value) : null;
+
+  const cekNim = await repo.findByNim(inputNim.value.trim());
+  if (cekNim && cekNim.id !== currentId) {
+    alert('NIM ini sudah terdaftar.');
+    return;
+  }
+
+  const cekNama = await repo.findByNama(inputNama.value.trim());
+  if (cekNama && cekNama.id !== currentId) {
+    alert('Mahasiswa dengan nama ini sudah ada di sistem!');
+    return;
+  }
+
   const payload: Omit<Mahasiswa, 'id'> = {
     nim: inputNim.value,
     nama: inputNama.value,
@@ -122,11 +134,14 @@ form.addEventListener('submit', async (e: SubmitEvent) => {
   resetForm();
   await loadTable();
 });
+
 function resetForm(): void {
   form.reset();
   editId.value = '';
 }
+
 document.getElementById('btn-clear')!.onclick = resetForm;
+
 const inputSearchNim = requireElement('search-nim', HTMLInputElement);
 const btnSearch = requireElement('btn-search', HTMLButtonElement);
 const btnResetSearch = requireElement('btn-reset-search', HTMLButtonElement);
@@ -144,4 +159,17 @@ btnResetSearch.addEventListener('click', async () => {
   inputSearchNim.value = '';
   await loadTable();
 });
+
+tbody.addEventListener('click', async (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+
+  if (target.classList.contains('btn-edit')) {
+    fillFormFromButton(target as HTMLButtonElement);
+  }
+
+  if (target.classList.contains('btn-delete')) {
+    await handleDelete(target as HTMLButtonElement);
+  }
+});
+
 initApp();

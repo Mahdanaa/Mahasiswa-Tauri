@@ -32,4 +32,8 @@ WHERE id = $6`,
   async findByJurusan(jurusan: string): Promise<Mahasiswa[]> {
     return await this.db.select<Mahasiswa[]>(`SELECT * FROM mahasiswa WHERE jurusan = $1`, [jurusan]);
   }
+  async findByNama(nama: string): Promise<Mahasiswa | undefined> {
+    const rows = await this.db.select<Mahasiswa[]>(`SELECT * FROM mahasiswa WHERE nama = $1`, [nama]);
+    return rows[0];
+  }
 }
