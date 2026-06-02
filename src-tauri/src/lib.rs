@@ -13,6 +13,12 @@ jurusan TEXT NOT NULL,
 angkatan INTEGER NOT NULL
 )",
 kind: MigrationKind::Up,
+},
+Migration {
+version: 2,
+description: "add ipk column",
+sql: "ALTER TABLE mahasiswa ADD COLUMN ipk REAL DEFAULT 0.0;",
+kind: MigrationKind::Up,
 }
 ];
 tauri ::Builder::default()

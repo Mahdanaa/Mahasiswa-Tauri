@@ -15,6 +15,7 @@ const inputNim = requireElement('nim', HTMLInputElement);
 const inputNama = requireElement('nama', HTMLInputElement);
 const inputJurusan = requireElement('jurusan', HTMLInputElement);
 const inputAngkatan = requireElement('angkatan', HTMLInputElement);
+const inputIpk = requireElement('ipk', HTMLInputElement);
 let repo: MahasiswaRepository;
 async function initApp(): Promise<void> {
   const db = await Database.getInstance();
@@ -25,6 +26,7 @@ function fillFormFromButton(button: HTMLButtonElement): void {
   editId.value = button.dataset.id ?? '';
   inputNim.value = button.dataset.nim ?? '';
   inputNama.value = button.dataset.nama ?? '';
+  inputIpk.value = button.dataset.ipk ?? '';
   inputJurusan.value = button.dataset.jurusan ?? '';
   inputAngkatan.value = button.dataset.angkatan ?? '';
 }
@@ -54,10 +56,10 @@ async function loadTable(): Promise<void> {
     .map(
       (m: Mahasiswa) => `
 <tr>
-<td>${m.nim}</td><td>${m.nama}</td><td>${m.jurusan}</td><td>${m.angkatan}</td>
+<td>${m.nim}</td><td>${m.nama}</td><td>${m.ipk}</td><td>${m.jurusan}</td><td>${m.angkatan}</td>
 <td>
 <button type="button" class="btn-edit"
-data-id="${m.id}" data-nim="${m.nim}" data-nama="${m.nama}"
+data-id="${m.id}" data-nim="${m.nim}" data-nama="${m.nama}" data-ipk="${m.ipk}"
 data-jurusan="${m.jurusan}" data-angkatan="${m.angkatan}">Edit</button>
 <button type="button" class="btn-delete" data-id="${m.id}">Hapus</button>
 </td>
@@ -80,12 +82,22 @@ data-jurusan="${m.jurusan}" data-angkatan="${m.angkatan}">Edit</button>
 }
 form.addEventListener('submit', async (e: SubmitEvent) => {
   e.preventDefault();
+
+  const ipkValue = Number(inputIpk.value);
+
+  if (ipkValue > 4 || ipkValue < 0) {
+    alert('Nilai IPK tidak valid. Maksimal 4.0!');
+    return;
+  }
+
   const payload: Omit<Mahasiswa, 'id'> = {
     nim: inputNim.value,
     nama: inputNama.value,
+    ipk: ipkValue,
     jurusan: inputJurusan.value,
     angkatan: Number(inputAngkatan.value),
   };
+
   editId.value ? await repo.update(Number(editId.value), payload) : await repo.insert(payload);
   resetForm();
   await loadTable();

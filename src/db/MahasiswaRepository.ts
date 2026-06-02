@@ -7,9 +7,9 @@ export class MahasiswaRepository extends Repository<Mahasiswa> {
   }
   async insert(data: Omit<Mahasiswa, 'id'>): Promise<Mahasiswa> {
     const result = await this.db.execute(
-      `INSERT INTO mahasiswa (nim, nama, jurusan, angkatan)
-VALUES ($1, $2, $3, $4)`,
-      [data.nim, data.nama, data.jurusan, data.angkatan]
+      `INSERT INTO mahasiswa (nim, nama, jurusan, angkatan, ipk)
+VALUES ($1, $2, $3, $4, $5)`,
+      [data.nim, data.nama, data.jurusan, data.angkatan, data.ipk]
     );
     return { id: result.lastInsertId, ...data };
   }
@@ -19,9 +19,9 @@ VALUES ($1, $2, $3, $4)`,
     const updated = { ...existing, ...data };
     await this.db.execute(
       `UPDATE mahasiswa
-SET nim = $1, nama = $2, jurusan = $3, angkatan = $4
-WHERE id = $5`,
-      [updated.nim, updated.nama, updated.jurusan, updated.angkatan, id]
+SET nim = $1, nama = $2, jurusan = $3, angkatan = $4, ipk = $5
+WHERE id = $6`,
+      [updated.nim, updated.nama, updated.jurusan, updated.angkatan, updated.ipk, id]
     );
     return updated;
   }
