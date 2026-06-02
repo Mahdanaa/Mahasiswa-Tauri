@@ -50,8 +50,18 @@ async function handleDelete(button: HTMLButtonElement): Promise<void> {
     alert('Terjadi error saat menghapus data. Cek console.');
   }
 }
-async function loadTable(): Promise<void> {
-  const data = await repo.findAll();
+async function loadTable(searchNim: string = ''): Promise<void> {
+  let data: Mahasiswa[] = [];
+
+  if (searchNim !== '') {
+    const result = await repo.findByNim(searchNim);
+    if (result) {
+      data = [result];
+    }
+  } else {
+    data = await repo.findAll();
+  }
+
   tbody.innerHTML = data
     .map(
       (m: Mahasiswa) => `
@@ -84,23 +94,26 @@ form.addEventListener('submit', async (e: SubmitEvent) => {
   e.preventDefault();
 
   const angkatanStr = inputAngkatan.value.trim();
-
   if (angkatanStr === '') {
-    alert('Waduh! Tahun angkatan tidak boleh kosong ya sob!');
+    alert('Tahun angkatan tidak boleh kosong!');
+    return;
+  }
+  const angkatanValue = Number(angkatanStr);
+  if (Number.isNaN(angkatanValue) || angkatanValue < 2000 || angkatanValue > 3000) {
+    alert('Tahun angkatan harus angka yang valid!');
     return;
   }
 
-  const angkatanValue = Number(angkatanStr);
-
-  if (Number.isNaN(angkatanValue) || angkatanValue < 2000 || angkatanValue > 2030) {
-    alert('Tahun angkatan harus angka yang valid (contoh: 2024)!');
+  const ipkValue = Number(inputIpk.value);
+  if (ipkValue > 4 || ipkValue < 0) {
+    alert('Nilai IPK tidak valid. Maksimal 4.0!');
     return;
   }
 
   const payload: Omit<Mahasiswa, 'id'> = {
     nim: inputNim.value,
     nama: inputNama.value,
-    ipk: Number(inputIpk.value),
+    ipk: ipkValue,
     jurusan: inputJurusan.value,
     angkatan: angkatanValue,
   };
@@ -114,4 +127,21 @@ function resetForm(): void {
   editId.value = '';
 }
 document.getElementById('btn-clear')!.onclick = resetForm;
+const inputSearchNim = requireElement('search-nim', HTMLInputElement);
+const btnSearch = requireElement('btn-search', HTMLButtonElement);
+const btnResetSearch = requireElement('btn-reset-search', HTMLButtonElement);
+
+btnSearch.addEventListener('click', async () => {
+  const keyword = inputSearchNim.value.trim();
+  if (keyword === '') {
+    alert('Masukkan NIM yang mau dicari dulu sob!');
+    return;
+  }
+  await loadTable(keyword);
+});
+
+btnResetSearch.addEventListener('click', async () => {
+  inputSearchNim.value = '';
+  await loadTable();
+});
 initApp();

@@ -76,7 +76,7 @@
     </style>
   </head>
   <body>
-    <h1>📋 Manajemen Data Mahasiswa</h1>
+    <h1>Manajemen Data Mahasiswa</h1>
     <form id="form-mahasiswa">
       <input type="hidden" id="edit-id" />
       <input type="text" id="nim" placeholder="NIM" required />
@@ -87,6 +87,11 @@
       <button type="submit" id="btn-save">Simpan</button>
       <button type="button" id="btn-clear">Reset</button>
     </form>
+    <div style="margin-bottom: 15px">
+      <input type="text" id="search-nim" placeholder="Cari berdasarkan NIM..." />
+      <button type="button" id="btn-search">Cari</button>
+      <button type="button" id="btn-reset-search">Tampilkan Semua</button>
+    </div>
     <table>
       <thead>
         <tr>
