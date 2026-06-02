@@ -83,19 +83,26 @@ data-jurusan="${m.jurusan}" data-angkatan="${m.angkatan}">Edit</button>
 form.addEventListener('submit', async (e: SubmitEvent) => {
   e.preventDefault();
 
-  const ipkValue = Number(inputIpk.value);
+  const angkatanStr = inputAngkatan.value.trim();
 
-  if (ipkValue > 4 || ipkValue < 0) {
-    alert('Nilai IPK tidak valid. Maksimal 4.0!');
+  if (angkatanStr === '') {
+    alert('Waduh! Tahun angkatan tidak boleh kosong ya sob!');
+    return;
+  }
+
+  const angkatanValue = Number(angkatanStr);
+
+  if (Number.isNaN(angkatanValue) || angkatanValue < 2000 || angkatanValue > 2030) {
+    alert('Tahun angkatan harus angka yang valid (contoh: 2024)!');
     return;
   }
 
   const payload: Omit<Mahasiswa, 'id'> = {
     nim: inputNim.value,
     nama: inputNama.value,
-    ipk: ipkValue,
+    ipk: Number(inputIpk.value),
     jurusan: inputJurusan.value,
-    angkatan: Number(inputAngkatan.value),
+    angkatan: angkatanValue,
   };
 
   editId.value ? await repo.update(Number(editId.value), payload) : await repo.insert(payload);
